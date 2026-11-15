@@ -1,0 +1,381 @@
+---- Q1: transcript for ICU/2023/00001 ----
+---- Q2: result sheet for the first PUBLISHED batch of CSC101 ----
+---- Q3: courses taught by ICU/STAFF/001 ----
+---- Q4: result changes in the last 30 days ----
+---- Q5: pass rate per department ----
+---- Q6: grade distribution per course ----
+---- Q7: average CGPA per programme ----
+---- Q8: academic standing per department ----
+=== P2 EXPLAIN ANALYZE before/after ===
+SET
+Pager usage is off.
+Timing is off.
+psql:02_explain_analyze.sql:19: NOTICE:  index "p2_idx_transcript" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:20: NOTICE:  index "p2_idx_result_sheet" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:21: NOTICE:  index "p2_idx_lecturer_courses" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:22: NOTICE:  index "p2_idx_recent_audit" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:23: NOTICE:  index "p2_idx_recent_result" does not exist, skipping
+DROP INDEX
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+==== BEFORE P2 indexes ====
+---- Q1: transcript for ICU/2023/00001 ----
+                                                                               QUERY PLAN                                                                                
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=265.91..266.12 rows=81 width=60) (actual time=0.243..0.248 rows=82 loops=1)
+   Sort Key: sem.start_date, c.code
+   Sort Method: quicksort  Memory: 32kB
+   Buffers: shared hit=95
+   ->  Nested Loop  (cost=6.88..263.35 rows=81 width=60) (actual time=0.056..0.193 rows=82 loops=1)
+         Buffers: shared hit=95
+         ->  Hash Join  (cost=6.74..260.10 rows=81 width=60) (actual time=0.051..0.160 rows=82 loops=1)
+               Hash Cond: (ar.course_id = c.course_id)
+               Buffers: shared hit=87
+               ->  Nested Loop  (cost=5.20..258.31 rows=81 width=35) (actual time=0.033..0.129 rows=82 loops=1)
+                     Buffers: shared hit=86
+                     ->  Index Only Scan using student_pkey on student s  (cost=0.28..8.29 rows=1 width=15) (actual time=0.010..0.011 rows=1 loops=1)
+                           Index Cond: (matric_no = 'ICU/2023/00001'::text)
+                           Heap Fetches: 1
+                           Buffers: shared hit=3
+                     ->  Bitmap Heap Scan on assessment_result ar  (cost=4.92..249.21 rows=81 width=35) (actual time=0.020..0.104 rows=82 loops=1)
+                           Recheck Cond: (((matric_no)::text = 'ICU/2023/00001'::text) AND (NOT superseded) AND ((status)::text = ANY ('{APPROVED,PUBLISHED}'::text[])))
+                           Heap Blocks: exact=81
+                           Buffers: shared hit=83
+                           ->  Bitmap Index Scan on idx_assessment_result_active_status  (cost=0.00..4.90 rows=81 width=0) (actual time=0.009..0.009 rows=82 loops=1)
+                                 Index Cond: ((matric_no)::text = 'ICU/2023/00001'::text)
+                                 Buffers: shared hit=2
+               ->  Hash  (cost=1.24..1.24 rows=24 width=33) (actual time=0.014..0.014 rows=24 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=33) (actual time=0.006..0.008 rows=24 loops=1)
+                           Buffers: shared hit=1
+         ->  Memoize  (cost=0.14..0.31 rows=1 width=8) (actual time=0.000..0.000 rows=1 loops=82)
+               Cache Key: ar.semester_id
+               Cache Mode: logical
+               Hits: 78  Misses: 4  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+               Buffers: shared hit=8
+               ->  Index Scan using semester_pkey on semester sem  (cost=0.13..0.30 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=4)
+                     Index Cond: (semester_id = ar.semester_id)
+                     Buffers: shared hit=8
+ Planning:
+   Buffers: shared hit=316
+ Planning Time: 0.957 ms
+ Execution Time: 0.297 ms
+(39 rows)
+
+---- Q2: result sheet for the first PUBLISHED batch of CSC101 ----
+                                                                           QUERY PLAN                                                                            
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=61.00..62.57 rows=625 width=35) (actual time=0.562..0.596 rows=625 loops=1)
+   Sort Key: ar.total_score DESC
+   Sort Method: quicksort  Memory: 64kB
+   Buffers: shared hit=14
+   InitPlan 1 (returns $0)
+     ->  Limit  (cost=3.75..3.75 rows=1 width=4) (actual time=0.059..0.061 rows=1 loops=1)
+           Buffers: shared hit=2
+           ->  Sort  (cost=3.75..3.76 rows=3 width=4) (actual time=0.058..0.060 rows=1 loops=1)
+                 Sort Key: rb2.batch_id
+                 Sort Method: top-N heapsort  Memory: 25kB
+                 Buffers: shared hit=2
+                 ->  Hash Join  (cost=1.31..3.73 rows=3 width=4) (actual time=0.021..0.038 rows=3 loops=1)
+                       Hash Cond: (rb2.course_id = c2.course_id)
+                       Buffers: shared hit=2
+                       ->  Seq Scan on result_batch rb2  (cost=0.00..2.20 rows=72 width=8) (actual time=0.008..0.018 rows=72 loops=1)
+                             Filter: ((status)::text = 'PUBLISHED'::text)
+                             Rows Removed by Filter: 24
+                             Buffers: shared hit=1
+                       ->  Hash  (cost=1.30..1.30 rows=1 width=4) (actual time=0.008..0.009 rows=1 loops=1)
+                             Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                             Buffers: shared hit=1
+                             ->  Seq Scan on course c2  (cost=0.00..1.30 rows=1 width=4) (actual time=0.003..0.006 rows=1 loops=1)
+                                   Filter: ((code)::text = 'CSC101'::text)
+                                   Rows Removed by Filter: 23
+                                   Buffers: shared hit=1
+   ->  Index Scan using idx_assessment_result_batch_id on assessment_result ar  (cost=0.29..28.23 rows=625 width=35) (actual time=0.079..0.261 rows=625 loops=1)
+         Index Cond: (batch_id = $0)
+         Buffers: shared hit=14
+ Planning:
+   Buffers: shared hit=73
+ Planning Time: 0.456 ms
+ Execution Time: 0.671 ms
+(32 rows)
+
+---- Q3: courses taught by ICU/STAFF/001 ----
+                                                                                  QUERY PLAN                                                                                  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=678.19..815.69 rows=5000 width=62) (actual time=20.732..24.932 rows=39 loops=1)
+   Group Key: sem.start_date, c.code, sem.session, sem.term, rb.batch_id
+   Buffers: shared hit=489
+   ->  Sort  (cost=678.19..690.69 rows=5000 width=62) (actual time=20.611..21.555 rows=24375 loops=1)
+         Sort Key: sem.start_date, c.code, sem.session, sem.term, rb.batch_id
+         Sort Method: quicksort  Memory: 2863kB
+         Buffers: shared hit=489
+         ->  Nested Loop Left Join  (cost=4.10..371.00 rows=5000 width=62) (actual time=0.039..5.514 rows=24375 loops=1)
+               Buffers: shared hit=489
+               ->  Hash Join  (cost=3.81..6.18 rows=8 width=54) (actual time=0.032..0.094 rows=39 loops=1)
+                     Hash Cond: (rb.course_id = c.course_id)
+                     Buffers: shared hit=4
+                     ->  Hash Join  (cost=2.27..4.62 rows=8 width=51) (actual time=0.018..0.066 rows=39 loops=1)
+                           Hash Cond: (rb.semester_id = sem.semester_id)
+                           Buffers: shared hit=3
+                           ->  Hash Join  (cost=1.16..3.46 rows=8 width=35) (actual time=0.011..0.048 rows=39 loops=1)
+                                 Hash Cond: (rb.lecturer_id = l.lecturer_id)
+                                 Buffers: shared hit=2
+                                 ->  Seq Scan on result_batch rb  (cost=0.00..1.96 rows=96 width=25) (actual time=0.002..0.011 rows=96 loops=1)
+                                       Buffers: shared hit=1
+                                 ->  Hash  (cost=1.15..1.15 rows=1 width=18) (actual time=0.005..0.006 rows=1 loops=1)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                       Buffers: shared hit=1
+                                       ->  Seq Scan on lecturer l  (cost=0.00..1.15 rows=1 width=18) (actual time=0.004..0.005 rows=1 loops=1)
+                                             Filter: ((staff_no)::text = 'ICU/STAFF/001'::text)
+                                             Rows Removed by Filter: 11
+                                             Buffers: shared hit=1
+                           ->  Hash  (cost=1.05..1.05 rows=5 width=24) (actual time=0.004..0.005 rows=5 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                 Buffers: shared hit=1
+                                 ->  Seq Scan on semester sem  (cost=0.00..1.05 rows=5 width=24) (actual time=0.002..0.003 rows=5 loops=1)
+                                       Buffers: shared hit=1
+                     ->  Hash  (cost=1.24..1.24 rows=24 width=11) (actual time=0.011..0.011 rows=24 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                           Buffers: shared hit=1
+                           ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=11) (actual time=0.004..0.007 rows=24 loops=1)
+                                 Buffers: shared hit=1
+               ->  Index Scan using idx_assessment_result_batch_id on assessment_result ar  (cost=0.29..39.35 rows=625 width=12) (actual time=0.004..0.075 rows=625 loops=39)
+                     Index Cond: (batch_id = rb.batch_id)
+                     Buffers: shared hit=485
+ Planning:
+   Buffers: shared hit=79
+ Planning Time: 0.654 ms
+ Execution Time: 24.981 ms
+(44 rows)
+
+---- Q4: changes in the last 30 days ----
+                                                                        QUERY PLAN                                                                         
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=4484.41..4507.74 rows=200 width=30) (actual time=13.245..16.137 rows=0 loops=1)
+   Buffers: shared hit=915
+   ->  Gather Merge  (cost=4484.41..10288.98 rows=49750 width=30) (actual time=13.243..16.135 rows=0 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=915
+         ->  Sort  (cost=3484.39..3546.57 rows=24875 width=30) (actual time=3.283..3.284 rows=0 loops=3)
+               Sort Key: ar.updated_at DESC
+               Sort Method: quicksort  Memory: 25kB
+               Buffers: shared hit=915
+               Worker 0:  Sort Method: quicksort  Memory: 25kB
+               Worker 1:  Sort Method: quicksort  Memory: 25kB
+               ->  Parallel Append  (cost=0.43..2409.31 rows=24875 width=30) (actual time=3.262..3.263 rows=0 loops=3)
+                     Buffers: shared hit=899
+                     ->  Hash Join  (cost=1.54..2284.93 rows=59700 width=30) (actual time=9.776..9.777 rows=0 loops=1)
+                           Hash Cond: (ar.course_id = c.course_id)
+                           Buffers: shared hit=899
+                           ->  Seq Scan on assessment_result ar  (cost=0.00..2099.00 rows=59700 width=27) (actual time=9.775..9.775 rows=0 loops=1)
+                                 Filter: ((updated_at <> created_at) AND (updated_at >= (CURRENT_TIMESTAMP - '30 days'::interval)))
+                                 Rows Removed by Filter: 60000
+                                 Buffers: shared hit=899
+                           ->  Hash  (cost=1.24..1.24 rows=24 width=11) (never executed)
+                                 ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=11) (never executed)
+                     ->  Nested Loop  (cost=0.43..8.46 rows=1 width=30) (actual time=0.006..0.007 rows=0 loops=1)
+                           ->  Nested Loop  (cost=0.29..8.31 rows=1 width=27) (actual time=0.006..0.007 rows=0 loops=1)
+                                 ->  Seq Scan on grade_change_audit gca  (cost=0.00..0.00 rows=1 width=16) (actual time=0.005..0.006 rows=0 loops=1)
+                                       Filter: (created_at >= (CURRENT_TIMESTAMP - '30 days'::interval))
+                                 ->  Index Scan using assessment_result_pkey on assessment_result ar_1  (cost=0.29..8.31 rows=1 width=27) (never executed)
+                                       Index Cond: (result_id = gca.result_id)
+                           ->  Index Scan using course_pkey on course c_1  (cost=0.14..0.16 rows=1 width=11) (never executed)
+                                 Index Cond: (course_id = ar_1.course_id)
+ Planning:
+   Buffers: shared hit=71
+ Planning Time: 0.446 ms
+ Execution Time: 16.169 ms
+(35 rows)
+
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ANALYZE
+ANALYZE
+ANALYZE
+==== AFTER P2 indexes ====
+---- Q1: transcript for ICU/2023/00001 ----
+                                                                               QUERY PLAN                                                                                
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=265.91..266.12 rows=81 width=60) (actual time=0.348..0.355 rows=82 loops=1)
+   Sort Key: sem.start_date, c.code
+   Sort Method: quicksort  Memory: 32kB
+   Buffers: shared hit=95
+   ->  Nested Loop  (cost=6.88..263.35 rows=81 width=60) (actual time=0.078..0.281 rows=82 loops=1)
+         Buffers: shared hit=95
+         ->  Hash Join  (cost=6.74..260.10 rows=81 width=60) (actual time=0.070..0.211 rows=82 loops=1)
+               Hash Cond: (ar.course_id = c.course_id)
+               Buffers: shared hit=87
+               ->  Nested Loop  (cost=5.20..258.31 rows=81 width=35) (actual time=0.048..0.170 rows=82 loops=1)
+                     Buffers: shared hit=86
+                     ->  Index Only Scan using student_pkey on student s  (cost=0.28..8.29 rows=1 width=15) (actual time=0.010..0.011 rows=1 loops=1)
+                           Index Cond: (matric_no = 'ICU/2023/00001'::text)
+                           Heap Fetches: 1
+                           Buffers: shared hit=3
+                     ->  Bitmap Heap Scan on assessment_result ar  (cost=4.92..249.21 rows=81 width=35) (actual time=0.035..0.140 rows=82 loops=1)
+                           Recheck Cond: (((matric_no)::text = 'ICU/2023/00001'::text) AND (NOT superseded) AND ((status)::text = ANY ('{APPROVED,PUBLISHED}'::text[])))
+                           Heap Blocks: exact=81
+                           Buffers: shared hit=83
+                           ->  Bitmap Index Scan on idx_assessment_result_active_status  (cost=0.00..4.90 rows=81 width=0) (actual time=0.012..0.012 rows=82 loops=1)
+                                 Index Cond: ((matric_no)::text = 'ICU/2023/00001'::text)
+                                 Buffers: shared hit=2
+               ->  Hash  (cost=1.24..1.24 rows=24 width=33) (actual time=0.016..0.017 rows=24 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=33) (actual time=0.006..0.009 rows=24 loops=1)
+                           Buffers: shared hit=1
+         ->  Memoize  (cost=0.14..0.31 rows=1 width=8) (actual time=0.000..0.000 rows=1 loops=82)
+               Cache Key: ar.semester_id
+               Cache Mode: logical
+               Hits: 78  Misses: 4  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+               Buffers: shared hit=8
+               ->  Index Scan using semester_pkey on semester sem  (cost=0.13..0.30 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=4)
+                     Index Cond: (semester_id = ar.semester_id)
+                     Buffers: shared hit=8
+ Planning:
+   Buffers: shared hit=92 read=3
+ Planning Time: 0.701 ms
+ Execution Time: 0.408 ms
+(39 rows)
+
+---- Q2: result sheet for the first PUBLISHED batch of CSC101 ----
+                                                                           QUERY PLAN                                                                            
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=61.00..62.57 rows=625 width=35) (actual time=0.580..0.619 rows=625 loops=1)
+   Sort Key: ar.total_score DESC
+   Sort Method: quicksort  Memory: 64kB
+   Buffers: shared hit=14
+   InitPlan 1 (returns $0)
+     ->  Limit  (cost=3.75..3.75 rows=1 width=4) (actual time=0.042..0.044 rows=1 loops=1)
+           Buffers: shared hit=2
+           ->  Sort  (cost=3.75..3.76 rows=3 width=4) (actual time=0.041..0.043 rows=1 loops=1)
+                 Sort Key: rb2.batch_id
+                 Sort Method: top-N heapsort  Memory: 25kB
+                 Buffers: shared hit=2
+                 ->  Hash Join  (cost=1.31..3.73 rows=3 width=4) (actual time=0.019..0.039 rows=3 loops=1)
+                       Hash Cond: (rb2.course_id = c2.course_id)
+                       Buffers: shared hit=2
+                       ->  Seq Scan on result_batch rb2  (cost=0.00..2.20 rows=72 width=8) (actual time=0.007..0.018 rows=72 loops=1)
+                             Filter: ((status)::text = 'PUBLISHED'::text)
+                             Rows Removed by Filter: 24
+                             Buffers: shared hit=1
+                       ->  Hash  (cost=1.30..1.30 rows=1 width=4) (actual time=0.007..0.008 rows=1 loops=1)
+                             Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                             Buffers: shared hit=1
+                             ->  Seq Scan on course c2  (cost=0.00..1.30 rows=1 width=4) (actual time=0.003..0.006 rows=1 loops=1)
+                                   Filter: ((code)::text = 'CSC101'::text)
+                                   Rows Removed by Filter: 23
+                                   Buffers: shared hit=1
+   ->  Index Scan using idx_assessment_result_batch_id on assessment_result ar  (cost=0.29..28.23 rows=625 width=35) (actual time=0.053..0.254 rows=625 loops=1)
+         Index Cond: (batch_id = $0)
+         Buffers: shared hit=14
+ Planning:
+   Buffers: shared hit=26 read=1
+ Planning Time: 0.357 ms
+ Execution Time: 0.676 ms
+(32 rows)
+
+---- Q3: courses taught by ICU/STAFF/001 ----
+                                                                                  QUERY PLAN                                                                                  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=678.19..815.69 rows=5000 width=62) (actual time=19.783..24.033 rows=39 loops=1)
+   Group Key: sem.start_date, c.code, sem.session, sem.term, rb.batch_id
+   Buffers: shared hit=489
+   ->  Sort  (cost=678.19..690.69 rows=5000 width=62) (actual time=19.661..20.625 rows=24375 loops=1)
+         Sort Key: sem.start_date, c.code, sem.session, sem.term, rb.batch_id
+         Sort Method: quicksort  Memory: 2863kB
+         Buffers: shared hit=489
+         ->  Nested Loop Left Join  (cost=4.10..371.00 rows=5000 width=62) (actual time=0.033..5.440 rows=24375 loops=1)
+               Buffers: shared hit=489
+               ->  Hash Join  (cost=3.81..6.18 rows=8 width=54) (actual time=0.027..0.084 rows=39 loops=1)
+                     Hash Cond: (rb.course_id = c.course_id)
+                     Buffers: shared hit=4
+                     ->  Hash Join  (cost=2.27..4.62 rows=8 width=51) (actual time=0.015..0.059 rows=39 loops=1)
+                           Hash Cond: (rb.semester_id = sem.semester_id)
+                           Buffers: shared hit=3
+                           ->  Hash Join  (cost=1.16..3.46 rows=8 width=35) (actual time=0.010..0.043 rows=39 loops=1)
+                                 Hash Cond: (rb.lecturer_id = l.lecturer_id)
+                                 Buffers: shared hit=2
+                                 ->  Seq Scan on result_batch rb  (cost=0.00..1.96 rows=96 width=25) (actual time=0.002..0.010 rows=96 loops=1)
+                                       Buffers: shared hit=1
+                                 ->  Hash  (cost=1.15..1.15 rows=1 width=18) (actual time=0.004..0.005 rows=1 loops=1)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                       Buffers: shared hit=1
+                                       ->  Seq Scan on lecturer l  (cost=0.00..1.15 rows=1 width=18) (actual time=0.003..0.004 rows=1 loops=1)
+                                             Filter: ((staff_no)::text = 'ICU/STAFF/001'::text)
+                                             Rows Removed by Filter: 11
+                                             Buffers: shared hit=1
+                           ->  Hash  (cost=1.05..1.05 rows=5 width=24) (actual time=0.003..0.004 rows=5 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                 Buffers: shared hit=1
+                                 ->  Seq Scan on semester sem  (cost=0.00..1.05 rows=5 width=24) (actual time=0.001..0.002 rows=5 loops=1)
+                                       Buffers: shared hit=1
+                     ->  Hash  (cost=1.24..1.24 rows=24 width=11) (actual time=0.010..0.010 rows=24 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                           Buffers: shared hit=1
+                           ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=11) (actual time=0.004..0.006 rows=24 loops=1)
+                                 Buffers: shared hit=1
+               ->  Index Scan using idx_assessment_result_batch_id on assessment_result ar  (cost=0.29..39.35 rows=625 width=12) (actual time=0.003..0.074 rows=625 loops=39)
+                     Index Cond: (batch_id = rb.batch_id)
+                     Buffers: shared hit=485
+ Planning:
+   Buffers: shared hit=29
+ Planning Time: 0.635 ms
+ Execution Time: 24.077 ms
+(44 rows)
+
+---- Q4: changes in the last 30 days ----
+                                                                                      QUERY PLAN                                                                                      
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3884.55..3907.88 rows=200 width=30) (actual time=4.879..7.491 rows=0 loops=1)
+   Buffers: shared hit=18
+   ->  Gather Merge  (cost=3884.55..9689.12 rows=49750 width=30) (actual time=4.878..7.489 rows=0 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=18
+         ->  Sort  (cost=2884.52..2946.71 rows=24875 width=30) (actual time=0.103..0.105 rows=0 loops=3)
+               Sort Key: ar.updated_at DESC
+               Sort Method: quicksort  Memory: 25kB
+               Buffers: shared hit=18
+               Worker 0:  Sort Method: quicksort  Memory: 25kB
+               Worker 1:  Sort Method: quicksort  Memory: 25kB
+               ->  Parallel Append  (cost=0.43..1809.44 rows=24875 width=30) (actual time=0.004..0.006 rows=0 loops=3)
+                     Buffers: shared hit=2
+                     ->  Hash Join  (cost=1.67..1685.07 rows=59700 width=30) (actual time=0.006..0.008 rows=0 loops=1)
+                           Hash Cond: (ar.course_id = c.course_id)
+                           Buffers: shared hit=2
+                           ->  Index Only Scan using p2_idx_recent_result on assessment_result ar  (cost=0.13..1499.14 rows=59700 width=27) (actual time=0.006..0.006 rows=0 loops=1)
+                                 Index Cond: (updated_at >= (CURRENT_TIMESTAMP - '30 days'::interval))
+                                 Heap Fetches: 0
+                                 Buffers: shared hit=2
+                           ->  Hash  (cost=1.24..1.24 rows=24 width=11) (never executed)
+                                 ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=11) (never executed)
+                     ->  Nested Loop  (cost=0.43..8.46 rows=1 width=30) (actual time=0.004..0.005 rows=0 loops=1)
+                           ->  Nested Loop  (cost=0.29..8.31 rows=1 width=27) (actual time=0.004..0.004 rows=0 loops=1)
+                                 ->  Seq Scan on grade_change_audit gca  (cost=0.00..0.00 rows=1 width=16) (actual time=0.003..0.003 rows=0 loops=1)
+                                       Filter: (created_at >= (CURRENT_TIMESTAMP - '30 days'::interval))
+                                 ->  Index Scan using assessment_result_pkey on assessment_result ar_1  (cost=0.29..8.31 rows=1 width=27) (never executed)
+                                       Index Cond: (result_id = gca.result_id)
+                           ->  Index Scan using course_pkey on course c_1  (cost=0.14..0.16 rows=1 width=11) (never executed)
+                                 Index Cond: (course_id = ar_1.course_id)
+ Planning:
+   Buffers: shared hit=29 read=1
+ Planning Time: 0.463 ms
+ Execution Time: 7.524 ms
+(35 rows)
+
+==== Done. Full-table aggregates (Q5-Q8) keep a Seq Scan -- see README. ====
