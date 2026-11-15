@@ -1,0 +1,99 @@
+psql:01_schema.sql:246: NOTICE:  trigger "trg_compute_grade" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:262: NOTICE:  trigger "trg_touch_updated_at" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:305: NOTICE:  trigger "trg_check_batch_publish" for relation "result_batch" does not exist, skipping
+psql:01_schema.sql:355: NOTICE:  trigger "trg_block_change_after_publication" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:401: NOTICE:  trigger "trg_check_result_batch_consistency" for relation "assessment_result" does not exist, skipping
+      note       | total_indexes 
+-----------------+---------------
+ indexes created |            39
+(1 row)
+
+    table_name     | count 
+-------------------+-------
+ faculty           |     4
+ department        |     8
+ programme         |     5
+ lecturer          |    12
+ course            |    24
+ grading_scale     |     6
+ semester          |     5
+ student           |     6
+ result_batch      |     4
+ assessment_result |     6
+(10 rows)
+
+psql:04_bulk_data.sql:219: NOTICE:  No DRAFT row found for the supersede demo -- skipped.
+ students_with_results | cgpa_mismatches 
+-----------------------+-----------------
+                   625 |               0
+(1 row)
+
+  session  |  term  |  status  |   n   
+-----------+--------+----------+-------
+ 2023/2024 | FIRST  | APPROVED | 15000
+ 2023/2024 | SECOND | APPROVED | 15000
+ 2024/2025 | FIRST  | APPROVED | 15000
+ 2024/2025 | SECOND | APPROVED |  6000
+ 2024/2025 | SECOND | DRAFT    |  4625
+ 2024/2025 | SECOND | PENDING  |  4375
+(6 rows)
+
+       table_name        |   n   
+-------------------------+-------
+ assessment_result total | 60000
+(1 row)
+
+=== P1 constraint tests ===
+SET
+==== Constraint tests (10 must fail, 1 must succeed) ====
+BEGIN
+psql:05_constraint_tests.sql:29: NOTICE:  PASS: test 1 -- insert or update on table "student" violates foreign key constraint "student_programme_id_fkey"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:45: NOTICE:  PASS: test 2 -- new row for relation "student" violates check constraint "student_gender_check"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:66: NOTICE:  PASS: test 3 -- Cannot insert DRAFT result into PUBLISHED batch 1
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:81: NOTICE:  PASS: test 4 -- duplicate key value violates unique constraint "grading_scale_pkey"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:107: NOTICE:  PASS: test 5 -- duplicate key value violates unique constraint "one_active_result_per_student_course_semester"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:130: NOTICE:  PASS: test 6 -- Cannot insert DRAFT result into PUBLISHED batch 1
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:166: NOTICE:  PASS: test 7 -- Cannot PUBLISH batch 97: 1 result(s) are not APPROVED
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:202: NOTICE:  PASS: test 8 -- Cannot modify PUBLISHED result 60012 without a grade_change_audit row in the same transaction
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:217: NOTICE:  PASS: test 9 -- new row for relation "grading_scale" violates check constraint "grading_scale_check1"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:238: NOTICE:  PASS: test 10 -- duplicate key value violates unique constraint "result_batch_course_id_semester_id_dept_id_key"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:252: NOTICE:  PASS (control): test 11 -- valid insert succeeded
+DO
+ROLLBACK
+==== End of constraint tests ====
+=== P1 row counts ===
+ students | courses | results 
+----------+---------+---------
+     2006 |      24 |   60000
+(1 row)
+
