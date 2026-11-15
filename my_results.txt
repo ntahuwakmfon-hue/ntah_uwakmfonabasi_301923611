@@ -1,0 +1,1110 @@
+cd "${CODESPACE_VSCODE_FOLDER:-$PWD}" && mkdir -p $HOME/kit && unzip -oq Ntah_Uwakmfonabasi_FIXED.zip -d $HOME/kit && K=$HOME/kit/advanced-database-portfolio && cp -r $K/. . && bash setup.sh && git add -A && git commit -qm "Setup: project, setup.sh, runall.sh" && git push -q && echo SETUP-DONE RESULTS - AgentLink Lagos - Joseph Okeoma - 2026-11-15 23:34 UTC
+
+================ PORTFOLIO 1: portfolio-1-database-design/p1_output.log ================
+log lines: 99
+psql:01_schema.sql:246: NOTICE:  trigger "trg_compute_grade" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:262: NOTICE:  trigger "trg_touch_updated_at" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:305: NOTICE:  trigger "trg_check_batch_publish" for relation "result_batch" does not exist, skipping
+psql:01_schema.sql:355: NOTICE:  trigger "trg_block_change_after_publication" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:401: NOTICE:  trigger "trg_check_result_batch_consistency" for relation "assessment_result" does not exist, skipping
+      note       | total_indexes 
+-----------------+---------------
+ indexes created |            39
+(1 row)
+
+    table_name     | count 
+-------------------+-------
+ faculty           |     4
+ department        |     8
+ programme         |     5
+ lecturer          |    12
+ course            |    24
+ grading_scale     |     6
+ semester          |     5
+ student           |     6
+ result_batch      |     4
+ assessment_result |     6
+(10 rows)
+
+psql:04_bulk_data.sql:219: NOTICE:  No DRAFT row found for the supersede demo -- skipped.
+ students_with_results | cgpa_mismatches 
+-----------------------+-----------------
+                   625 |               0
+(1 row)
+
+  session  |  term  |  status  |   n   
+-----------+--------+----------+-------
+ 2023/2024 | FIRST  | APPROVED | 15000
+ 2023/2024 | SECOND | APPROVED | 15000
+ 2024/2025 | FIRST  | APPROVED | 15000
+ 2024/2025 | SECOND | APPROVED |  6000
+ 2024/2025 | SECOND | DRAFT    |  4625
+ 2024/2025 | SECOND | PENDING  |  4375
+(6 rows)
+
+       table_name        |   n   
+-------------------------+-------
+ assessment_result total | 60000
+(1 row)
+
+=== P1 constraint tests ===
+SET
+==== Constraint tests (10 must fail, 1 must succeed) ====
+BEGIN
+psql:05_constraint_tests.sql:29: NOTICE:  PASS: test 1 -- insert or update on table "student" violates foreign key constraint "student_programme_id_fkey"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:45: NOTICE:  PASS: test 2 -- new row for relation "student" violates check constraint "student_gender_check"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:66: NOTICE:  PASS: test 3 -- Cannot insert DRAFT result into PUBLISHED batch 1
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:81: NOTICE:  PASS: test 4 -- duplicate key value violates unique constraint "grading_scale_pkey"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:107: NOTICE:  PASS: test 5 -- duplicate key value violates unique constraint "one_active_result_per_student_course_semester"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:130: NOTICE:  PASS: test 6 -- Cannot insert DRAFT result into PUBLISHED batch 1
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:166: NOTICE:  PASS: test 7 -- Cannot PUBLISH batch 97: 1 result(s) are not APPROVED
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:202: NOTICE:  PASS: test 8 -- Cannot modify PUBLISHED result 60012 without a grade_change_audit row in the same transaction
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:217: NOTICE:  PASS: test 9 -- new row for relation "grading_scale" violates check constraint "grading_scale_check1"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:238: NOTICE:  PASS: test 10 -- duplicate key value violates unique constraint "result_batch_course_id_semester_id_dept_id_key"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:252: NOTICE:  PASS (control): test 11 -- valid insert succeeded
+DO
+ROLLBACK
+==== End of constraint tests ====
+=== P1 row counts ===
+ students | courses | results 
+----------+---------+---------
+     2006 |      24 |   60000
+(1 row)
+
+  ...
+psql:01_schema.sql:246: NOTICE:  trigger "trg_compute_grade" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:262: NOTICE:  trigger "trg_touch_updated_at" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:305: NOTICE:  trigger "trg_check_batch_publish" for relation "result_batch" does not exist, skipping
+psql:01_schema.sql:355: NOTICE:  trigger "trg_block_change_after_publication" for relation "assessment_result" does not exist, skipping
+psql:01_schema.sql:401: NOTICE:  trigger "trg_check_result_batch_consistency" for relation "assessment_result" does not exist, skipping
+      note       | total_indexes 
+-----------------+---------------
+ indexes created |            39
+(1 row)
+
+    table_name     | count 
+-------------------+-------
+ faculty           |     4
+ department        |     8
+ programme         |     5
+ lecturer          |    12
+ course            |    24
+ grading_scale     |     6
+ semester          |     5
+ student           |     6
+ result_batch      |     4
+ assessment_result |     6
+(10 rows)
+
+psql:04_bulk_data.sql:219: NOTICE:  No DRAFT row found for the supersede demo -- skipped.
+ students_with_results | cgpa_mismatches 
+-----------------------+-----------------
+                   625 |               0
+(1 row)
+
+  session  |  term  |  status  |   n   
+-----------+--------+----------+-------
+ 2023/2024 | FIRST  | APPROVED | 15000
+ 2023/2024 | SECOND | APPROVED | 15000
+ 2024/2025 | FIRST  | APPROVED | 15000
+ 2024/2025 | SECOND | APPROVED |  6000
+ 2024/2025 | SECOND | DRAFT    |  4625
+ 2024/2025 | SECOND | PENDING  |  4375
+(6 rows)
+
+       table_name        |   n   
+-------------------------+-------
+ assessment_result total | 60000
+(1 row)
+
+=== P1 constraint tests ===
+SET
+==== Constraint tests (10 must fail, 1 must succeed) ====
+BEGIN
+psql:05_constraint_tests.sql:29: NOTICE:  PASS: test 1 -- insert or update on table "student" violates foreign key constraint "student_programme_id_fkey"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:45: NOTICE:  PASS: test 2 -- new row for relation "student" violates check constraint "student_gender_check"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:66: NOTICE:  PASS: test 3 -- Cannot insert DRAFT result into PUBLISHED batch 1
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:81: NOTICE:  PASS: test 4 -- duplicate key value violates unique constraint "grading_scale_pkey"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:107: NOTICE:  PASS: test 5 -- duplicate key value violates unique constraint "one_active_result_per_student_course_semester"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:130: NOTICE:  PASS: test 6 -- Cannot insert DRAFT result into PUBLISHED batch 1
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:166: NOTICE:  PASS: test 7 -- Cannot PUBLISH batch 97: 1 result(s) are not APPROVED
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:202: NOTICE:  PASS: test 8 -- Cannot modify PUBLISHED result 60012 without a grade_change_audit row in the same transaction
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:217: NOTICE:  PASS: test 9 -- new row for relation "grading_scale" violates check constraint "grading_scale_check1"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:238: NOTICE:  PASS: test 10 -- duplicate key value violates unique constraint "result_batch_course_id_semester_id_dept_id_key"
+DO
+ROLLBACK
+BEGIN
+psql:05_constraint_tests.sql:252: NOTICE:  PASS (control): test 11 -- valid insert succeeded
+DO
+ROLLBACK
+==== End of constraint tests ====
+=== P1 row counts ===
+ students | courses | results 
+----------+---------+---------
+     2006 |      24 |   60000
+(1 row)
+
+
+================ PORTFOLIO 2: portfolio-2-query-optimisation/p2_output.log ================
+log lines: 381
+---- Q1: transcript for ICU/2023/00001 ----
+---- Q2: result sheet for the first PUBLISHED batch of CSC101 ----
+---- Q3: courses taught by ICU/STAFF/001 ----
+---- Q4: result changes in the last 30 days ----
+---- Q5: pass rate per department ----
+---- Q6: grade distribution per course ----
+---- Q7: average CGPA per programme ----
+---- Q8: academic standing per department ----
+=== P2 EXPLAIN ANALYZE before/after ===
+SET
+Pager usage is off.
+Timing is off.
+psql:02_explain_analyze.sql:19: NOTICE:  index "p2_idx_transcript" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:20: NOTICE:  index "p2_idx_result_sheet" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:21: NOTICE:  index "p2_idx_lecturer_courses" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:22: NOTICE:  index "p2_idx_recent_audit" does not exist, skipping
+DROP INDEX
+psql:02_explain_analyze.sql:23: NOTICE:  index "p2_idx_recent_result" does not exist, skipping
+DROP INDEX
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+==== BEFORE P2 indexes ====
+---- Q1: transcript for ICU/2023/00001 ----
+                                                                               QUERY PLAN                                                                                
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=265.91..266.12 rows=81 width=60) (actual time=0.243..0.248 rows=82 loops=1)
+   Sort Key: sem.start_date, c.code
+   Sort Method: quicksort  Memory: 32kB
+   Buffers: shared hit=95
+   ->  Nested Loop  (cost=6.88..263.35 rows=81 width=60) (actual time=0.056..0.193 rows=82 loops=1)
+         Buffers: shared hit=95
+         ->  Hash Join  (cost=6.74..260.10 rows=81 width=60) (actual time=0.051..0.160 rows=82 loops=1)
+               Hash Cond: (ar.course_id = c.course_id)
+               Buffers: shared hit=87
+               ->  Nested Loop  (cost=5.20..258.31 rows=81 width=35) (actual time=0.033..0.129 rows=82 loops=1)
+                     Buffers: shared hit=86
+                     ->  Index Only Scan using student_pkey on student s  (cost=0.28..8.29 rows=1 width=15) (actual time=0.010..0.011 rows=1 loops=1)
+                           Index Cond: (matric_no = 'ICU/2023/00001'::text)
+                           Heap Fetches: 1
+                           Buffers: shared hit=3
+                     ->  Bitmap Heap Scan on assessment_result ar  (cost=4.92..249.21 rows=81 width=35) (actual time=0.020..0.104 rows=82 loops=1)
+                           Recheck Cond: (((matric_no)::text = 'ICU/2023/00001'::text) AND (NOT superseded) AND ((status)::text = ANY ('{APPROVED,PUBLISHED}'::text[])))
+                           Heap Blocks: exact=81
+                           Buffers: shared hit=83
+                           ->  Bitmap Index Scan on idx_assessment_result_active_status  (cost=0.00..4.90 rows=81 width=0) (actual time=0.009..0.009 rows=82 loops=1)
+                                 Index Cond: ((matric_no)::text = 'ICU/2023/00001'::text)
+                                 Buffers: shared hit=2
+               ->  Hash  (cost=1.24..1.24 rows=24 width=33) (actual time=0.014..0.014 rows=24 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=33) (actual time=0.006..0.008 rows=24 loops=1)
+                           Buffers: shared hit=1
+         ->  Memoize  (cost=0.14..0.31 rows=1 width=8) (actual time=0.000..0.000 rows=1 loops=82)
+               Cache Key: ar.semester_id
+               Cache Mode: logical
+               Hits: 78  Misses: 4  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+               Buffers: shared hit=8
+               ->  Index Scan using semester_pkey on semester sem  (cost=0.13..0.30 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=4)
+                     Index Cond: (semester_id = ar.semester_id)
+                     Buffers: shared hit=8
+ Planning:
+   Buffers: shared hit=316
+ Planning Time: 0.957 ms
+ Execution Time: 0.297 ms
+(39 rows)
+
+---- Q2: result sheet for the first PUBLISHED batch of CSC101 ----
+                                                                           QUERY PLAN                                                                            
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=61.00..62.57 rows=625 width=35) (actual time=0.562..0.596 rows=625 loops=1)
+   Sort Key: ar.total_score DESC
+   Sort Method: quicksort  Memory: 64kB
+   Buffers: shared hit=14
+   InitPlan 1 (returns $0)
+     ->  Limit  (cost=3.75..3.75 rows=1 width=4) (actual time=0.059..0.061 rows=1 loops=1)
+           Buffers: shared hit=2
+           ->  Sort  (cost=3.75..3.76 rows=3 width=4) (actual time=0.058..0.060 rows=1 loops=1)
+                 Sort Key: rb2.batch_id
+                 Sort Method: top-N heapsort  Memory: 25kB
+                 Buffers: shared hit=2
+                 ->  Hash Join  (cost=1.31..3.73 rows=3 width=4) (actual time=0.021..0.038 rows=3 loops=1)
+                       Hash Cond: (rb2.course_id = c2.course_id)
+                       Buffers: shared hit=2
+                       ->  Seq Scan on result_batch rb2  (cost=0.00..2.20 rows=72 width=8) (actual time=0.008..0.018 rows=72 loops=1)
+                             Filter: ((status)::text = 'PUBLISHED'::text)
+                             Rows Removed by Filter: 24
+                             Buffers: shared hit=1
+                       ->  Hash  (cost=1.30..1.30 rows=1 width=4) (actual time=0.008..0.009 rows=1 loops=1)
+                             Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                             Buffers: shared hit=1
+                             ->  Seq Scan on course c2  (cost=  ...
+      Buffers: shared hit=1
+                     ->  Hash  (cost=1.24..1.24 rows=24 width=11) (actual time=0.010..0.010 rows=24 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                           Buffers: shared hit=1
+                           ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=11) (actual time=0.004..0.006 rows=24 loops=1)
+                                 Buffers: shared hit=1
+               ->  Index Scan using idx_assessment_result_batch_id on assessment_result ar  (cost=0.29..39.35 rows=625 width=12) (actual time=0.003..0.074 rows=625 loops=39)
+                     Index Cond: (batch_id = rb.batch_id)
+                     Buffers: shared hit=485
+ Planning:
+   Buffers: shared hit=29
+ Planning Time: 0.635 ms
+ Execution Time: 24.077 ms
+(44 rows)
+
+---- Q4: changes in the last 30 days ----
+                                                                                      QUERY PLAN                                                                                      
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3884.55..3907.88 rows=200 width=30) (actual time=4.879..7.491 rows=0 loops=1)
+   Buffers: shared hit=18
+   ->  Gather Merge  (cost=3884.55..9689.12 rows=49750 width=30) (actual time=4.878..7.489 rows=0 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=18
+         ->  Sort  (cost=2884.52..2946.71 rows=24875 width=30) (actual time=0.103..0.105 rows=0 loops=3)
+               Sort Key: ar.updated_at DESC
+               Sort Method: quicksort  Memory: 25kB
+               Buffers: shared hit=18
+               Worker 0:  Sort Method: quicksort  Memory: 25kB
+               Worker 1:  Sort Method: quicksort  Memory: 25kB
+               ->  Parallel Append  (cost=0.43..1809.44 rows=24875 width=30) (actual time=0.004..0.006 rows=0 loops=3)
+                     Buffers: shared hit=2
+                     ->  Hash Join  (cost=1.67..1685.07 rows=59700 width=30) (actual time=0.006..0.008 rows=0 loops=1)
+                           Hash Cond: (ar.course_id = c.course_id)
+                           Buffers: shared hit=2
+                           ->  Index Only Scan using p2_idx_recent_result on assessment_result ar  (cost=0.13..1499.14 rows=59700 width=27) (actual time=0.006..0.006 rows=0 loops=1)
+                                 Index Cond: (updated_at >= (CURRENT_TIMESTAMP - '30 days'::interval))
+                                 Heap Fetches: 0
+                                 Buffers: shared hit=2
+                           ->  Hash  (cost=1.24..1.24 rows=24 width=11) (never executed)
+                                 ->  Seq Scan on course c  (cost=0.00..1.24 rows=24 width=11) (never executed)
+                     ->  Nested Loop  (cost=0.43..8.46 rows=1 width=30) (actual time=0.004..0.005 rows=0 loops=1)
+                           ->  Nested Loop  (cost=0.29..8.31 rows=1 width=27) (actual time=0.004..0.004 rows=0 loops=1)
+                                 ->  Seq Scan on grade_change_audit gca  (cost=0.00..0.00 rows=1 width=16) (actual time=0.003..0.003 rows=0 loops=1)
+                                       Filter: (created_at >= (CURRENT_TIMESTAMP - '30 days'::interval))
+                                 ->  Index Scan using assessment_result_pkey on assessment_result ar_1  (cost=0.29..8.31 rows=1 width=27) (never executed)
+                                       Index Cond: (result_id = gca.result_id)
+                           ->  Index Scan using course_pkey on course c_1  (cost=0.14..0.16 rows=1 width=11) (never executed)
+                                 Index Cond: (course_id = ar_1.course_id)
+ Planning:
+   Buffers: shared hit=29 read=1
+ Planning Time: 0.463 ms
+ Execution Time: 7.524 ms
+(35 rows)
+
+==== Done. Full-table aggregates (Q5-Q8) keep a Seq Scan -- see README. ====
+
+================ PORTFOLIO 3: portfolio-3-transactions-concurrency/p3_output.log ================
+log lines: 125
+SET
+Pager usage is off.
+DO
+Demo batch id: 100
+ set_config 
+------------
+ 100
+(1 row)
+
+==== DEMO 1: COMMITTED result-posting transaction ====
+BEGIN
+INSERT 0 2
+   matric_no    | ca_score | exam_score | total_score | grade | grade_point |  status  
+----------------+----------+------------+-------------+-------+-------------+----------
+ ICU/2024/00100 |    32.00 |      58.00 |       90.00 | A     |         5.0 | APPROVED
+ ICU/2024/00101 |    28.00 |      41.00 |       69.00 | B     |         4.0 | APPROVED
+(2 rows)
+
+COMMIT
+>> DEMO 1 committed. Verify the rows are persisted:
+   matric_no    | ca_score | exam_score | total_score | grade | grade_point |  status  
+----------------+----------+------------+-------------+-------+-------------+----------
+ ICU/2024/00100 |    32.00 |      58.00 |       90.00 | A     |         5.0 | APPROVED
+ ICU/2024/00101 |    28.00 |      41.00 |       69.00 | B     |         4.0 | APPROVED
+(2 rows)
+
+==== DEMO 2: ROLLED-BACK result-posting transaction ====
+BEGIN
+INSERT 0 1
+>> Row for ICU/2024/00102 inserted inside the transaction (not committed yet).
+ rows_visible_inside_tx 
+------------------------
+                      1
+(1 row)
+
+psql:01_transactions.sql:133: NOTICE:  CHECK violation caught: new row for relation "assessment_result" violates check constraint "assessment_result_ca_score_check"
+psql:01_transactions.sql:133: ERROR:  intentional abort for demo 2
+CONTEXT:  PL/pgSQL function inline_code_block line 15 at RAISE
+ROLLBACK
+>> DEMO 2 rolled back. Verify NEITHER row was persisted:
+ rows_for_00102_or_00103 
+-------------------------
+                       0
+(1 row)
+
+==== DEMO 3: SAVEPOINT recovery (one bad row skipped) ====
+BEGIN
+SAVEPOINT
+psql:01_transactions.sql:167: NOTICE:  Skipping bad row ICU/2024/00104: new row for relation "assessment_result" violates check constraint "assessment_result_ca_score_check"
+DO
+RELEASE
+SAVEPOINT
+INSERT 0 1
+RELEASE
+SAVEPOINT
+INSERT 0 1
+RELEASE
+COMMIT
+>> DEMO 3 committed. Verify: 3 good rows persisted, 1 bad row skipped.
+   matric_no    | ca_score | exam_score | total_score | grade |  status  
+----------------+----------+------------+-------------+-------+----------
+ ICU/2024/00105 |    30.00 |      50.00 |       80.00 | A     | APPROVED
+ ICU/2024/00106 |    22.00 |      18.00 |       40.00 | E     | APPROVED
+(2 rows)
+
+==== End of transaction demos ====
+=== P3 two-session concurrency demos ===
+race_demos.py -- concurrency demos for Ibom Crown result processing
+database: resultsys   (Unix socket, no password, no TCP)
+
+========================================================================
+PART 1 -- the BUG: write skew under REPEATABLE READ
+========================================================================
+  A: committed  (saw 1 pending, approved 1)
+  B: committed  (inserted a new PENDING row)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 1
+  >>> BUG REPRODUCED: a PUBLISHED batch contains an unapproved result.
+
+========================================================================
+PART 2 -- trigger constraint fix WHERE ONE APPLIES (A publishes and commits FIRST, then B tries to insert)
+========================================================================
+  A: published + committed
+  B: blocked by trigger (SQLSTATE P0001)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> When A commits BEFORE B acts, the INSERT-time trigger closes the hole.
+
+========================================================================
+PART 3 -- the FIX: SERIALIZABLE + retry on SQLSTATE 40001
+========================================================================
+  A final: committed on attempt 1 (approved 2 pending result(s) in retry)
+  B: committed (inserted PENDING)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> FIX CONFIRMED: no unapproved result in the PUBLISHED batch.
+
+========================================================================
+PART 4 -- COMPARISON ONLY: SELECT ... FOR UPDATE on result_batch
+========================================================================
+  A: committed (published after holding lock)  (locked status: APPROVED)
+  B: failed: 40001
+  >>> FOR UPDATE serialises the two officers: B blocks until A is done.
+      This is heavier than SERIALIZABLE+retry; kept here for comparison only.
+
+========================================================================
+PART 5 -- READ COMMITTED vs REPEATABLE READ
+========================================================================
+  READ COMMITTED : before=0, after=1  (saw the new row)
+  REPEATABLE READ: before=0, after=0  (snapshot frozen -- did NOT see the new row)
+  >>> RC re-reads per statement; RR uses the snapshot frozen at BEGIN.
+      The write-skew bug exists because RR's trigger SELECT cannot see a
+      concurrently inserted row, so it under-counts PENDING results.
+
+========================================================================
+PART 6 -- deadlock (40P01) + the fixed-id-order version
+========================================================================
+  DEADLOCK version  A: failed: SQLSTATE 40P01 (ERROR:  deadlock detected
+DETAIL:  Process 17066 waits for ShareLock on transaction 847; blocked by )
+  DEADLOCK version  B: committed (no deadlock)
+  FIXED ORDER  A (r1 then r2): committed
+  FIXED ORDER  B (r1 then r2): committed
+  >>> Updating shared rows in a consistent id order removes the deadlock.
+
+cleanup: demo students, batches and results removed.
+  ...
+at RAISE
+ROLLBACK
+>> DEMO 2 rolled back. Verify NEITHER row was persisted:
+ rows_for_00102_or_00103 
+-------------------------
+                       0
+(1 row)
+
+==== DEMO 3: SAVEPOINT recovery (one bad row skipped) ====
+BEGIN
+SAVEPOINT
+psql:01_transactions.sql:167: NOTICE:  Skipping bad row ICU/2024/00104: new row for relation "assessment_result" violates check constraint "assessment_result_ca_score_check"
+DO
+RELEASE
+SAVEPOINT
+INSERT 0 1
+RELEASE
+SAVEPOINT
+INSERT 0 1
+RELEASE
+COMMIT
+>> DEMO 3 committed. Verify: 3 good rows persisted, 1 bad row skipped.
+   matric_no    | ca_score | exam_score | total_score | grade |  status  
+----------------+----------+------------+-------------+-------+----------
+ ICU/2024/00105 |    30.00 |      50.00 |       80.00 | A     | APPROVED
+ ICU/2024/00106 |    22.00 |      18.00 |       40.00 | E     | APPROVED
+(2 rows)
+
+==== End of transaction demos ====
+=== P3 two-session concurrency demos ===
+race_demos.py -- concurrency demos for Ibom Crown result processing
+database: resultsys   (Unix socket, no password, no TCP)
+
+========================================================================
+PART 1 -- the BUG: write skew under REPEATABLE READ
+========================================================================
+  A: committed  (saw 1 pending, approved 1)
+  B: committed  (inserted a new PENDING row)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 1
+  >>> BUG REPRODUCED: a PUBLISHED batch contains an unapproved result.
+
+========================================================================
+PART 2 -- trigger constraint fix WHERE ONE APPLIES (A publishes and commits FIRST, then B tries to insert)
+========================================================================
+  A: published + committed
+  B: blocked by trigger (SQLSTATE P0001)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> When A commits BEFORE B acts, the INSERT-time trigger closes the hole.
+
+========================================================================
+PART 3 -- the FIX: SERIALIZABLE + retry on SQLSTATE 40001
+========================================================================
+  A final: committed on attempt 1 (approved 2 pending result(s) in retry)
+  B: committed (inserted PENDING)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> FIX CONFIRMED: no unapproved result in the PUBLISHED batch.
+
+========================================================================
+PART 4 -- COMPARISON ONLY: SELECT ... FOR UPDATE on result_batch
+========================================================================
+  A: committed (published after holding lock)  (locked status: APPROVED)
+  B: failed: 40001
+  >>> FOR UPDATE serialises the two officers: B blocks until A is done.
+      This is heavier than SERIALIZABLE+retry; kept here for comparison only.
+
+========================================================================
+PART 5 -- READ COMMITTED vs REPEATABLE READ
+========================================================================
+  READ COMMITTED : before=0, after=1  (saw the new row)
+  REPEATABLE READ: before=0, after=0  (snapshot frozen -- did NOT see the new row)
+  >>> RC re-reads per statement; RR uses the snapshot frozen at BEGIN.
+      The write-skew bug exists because RR's trigger SELECT cannot see a
+      concurrently inserted row, so it under-counts PENDING results.
+
+========================================================================
+PART 6 -- deadlock (40P01) + the fixed-id-order version
+========================================================================
+  DEADLOCK version  A: failed: SQLSTATE 40P01 (ERROR:  deadlock detected
+DETAIL:  Process 17066 waits for ShareLock on transaction 847; blocked by )
+  DEADLOCK version  B: committed (no deadlock)
+  FIXED ORDER  A (r1 then r2): committed
+  FIXED ORDER  B (r1 then r2): committed
+  >>> Updating shared rows in a consistent id order removes the deadlock.
+
+cleanup: demo students, batches and results removed.
+
+================ PORTFOLIO 4: portfolio-4-nosql/p4_output.log ================
+log lines: 141
+---- collections in resultsys after setup ----
+  result_audit_log
+  transcript_documents
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+---- result_audit_log seed count: 5 ----
+---- transcript_documents seed count: 5 ----
+
+---- Pipeline 1: events per event_type ----
+{
+  _id: 'BATCH_PUBLISHED',
+  count: 2,
+  distinct_actors: [
+    'Senate Secretary'
+  ]
+}
+{
+  _id: 'GRADE_CHANGE',
+  count: 2,
+  distinct_actors: [
+    'Dr. Mary Udoudo',
+    'Dr. Uwakmfon Nkanta'
+  ]
+}
+{
+  _id: 'RESULT_APPROVED',
+  count: 1,
+  distinct_actors: [
+    'Exam Officer, CSC'
+  ]
+}
+
+---- Pipeline 2: average CGPA per graduation_class ----
+{
+  _id: 'First Class',
+  students: 1,
+  avg_cgpa: 4.62,
+  min_cgpa: 4.62,
+  max_cgpa: 4.62
+}
+{
+  _id: 'Second Class Upper',
+  students: 1,
+  avg_cgpa: 3.85,
+  min_cgpa: 3.85,
+  max_cgpa: 3.85
+}
+{
+  _id: 'Second Class Lower',
+  students: 1,
+  avg_cgpa: 2.85,
+  min_cgpa: 2.85,
+  max_cgpa: 2.85
+}
+{
+  _id: 'Pass',
+  students: 1,
+  avg_cgpa: 1.3,
+  min_cgpa: 1.3,
+  max_cgpa: 1.3
+}
+{
+  _id: 'Fail',
+  students: 1,
+  avg_cgpa: 0.85,
+  min_cgpa: 0.85,
+  max_cgpa: 0.85
+}
+
+---- Pipeline 3: top 5 students by CGPA ----
+{
+  matric_no: 'ICU/2023/00001',
+  student_name: 'Uwakmfonabasi Ntah',
+  programme_code: 'BSC-CSC',
+  cgpa: 4.62,
+  graduation_class: 'First Class',
+  total_credits: 120,
+  courses_counted: 3
+}
+{
+  matric_no: 'ICU/2023/00002',
+  student_name: 'Emem Edet',
+  programme_code: 'BSC-CSC',
+  cgpa: 3.85,
+  graduation_class: 'Second Class Upper',
+  total_credits: 120,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2024/00005',
+  student_name: 'Iniodu Udoh',
+  programme_code: 'BSC-ECN',
+  cgpa: 2.85,
+  graduation_class: 'Second Class Lower',
+  total_credits: 60,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2022/00006',
+  student_name: 'Affiong Eshiet',
+  programme_code: 'BSC-ACC',
+  cgpa: 1.3,
+  graduation_class: 'Pass',
+  total_credits: 90,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2023/00003',
+  student_name: 'Akpan Inyang',
+  programme_code: 'BENG-CEN',
+  cgpa: 0.85,
+  graduation_class: 'Fail',
+  total_credits: 45,
+  courses_counted: 2
+}
+
+---- 02_data_and_queries.js done ----
+=== P4 bulk data + index demo ===
+---- inserted 40000 documents into bulk_results ----
+---- collection count: 40000 ----
+dropIndex before-demo (no-op if absent): can't find index with key: { matric_no: 1, course_code: 1 }
+
+==== BEFORE compound index (hint {$natural:1}) ====
+BEFORE  stage=COLLSCAN  docsExamined=40000  nReturned=200  timeMs=12
+---- created compound index idx_matric_course ----
+
+==== AFTER compound index (planner chooses IXSCAN) ====
+AFTER   stage=FETCH -> IXSCAN  docsExamined=200  nReturned=200  timeMs=1
+
+==== Comparison ====
+                  BEFORE              AFTER
+Stage   : COLLSCAN             FETCH
+Docs    : 40000             200
+Time ms : 12             1
+
+---- done.  Documents in bulk_results: 40000 ----
+  ...
+---- collections in resultsys after setup ----
+  result_audit_log
+  transcript_documents
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+---- result_audit_log seed count: 5 ----
+---- transcript_documents seed count: 5 ----
+
+---- Pipeline 1: events per event_type ----
+{
+  _id: 'BATCH_PUBLISHED',
+  count: 2,
+  distinct_actors: [
+    'Senate Secretary'
+  ]
+}
+{
+  _id: 'GRADE_CHANGE',
+  count: 2,
+  distinct_actors: [
+    'Dr. Mary Udoudo',
+    'Dr. Uwakmfon Nkanta'
+  ]
+}
+{
+  _id: 'RESULT_APPROVED',
+  count: 1,
+  distinct_actors: [
+    'Exam Officer, CSC'
+  ]
+}
+
+---- Pipeline 2: average CGPA per graduation_class ----
+{
+  _id: 'First Class',
+  students: 1,
+  avg_cgpa: 4.62,
+  min_cgpa: 4.62,
+  max_cgpa: 4.62
+}
+{
+  _id: 'Second Class Upper',
+  students: 1,
+  avg_cgpa: 3.85,
+  min_cgpa: 3.85,
+  max_cgpa: 3.85
+}
+{
+  _id: 'Second Class Lower',
+  students: 1,
+  avg_cgpa: 2.85,
+  min_cgpa: 2.85,
+  max_cgpa: 2.85
+}
+{
+  _id: 'Pass',
+  students: 1,
+  avg_cgpa: 1.3,
+  min_cgpa: 1.3,
+  max_cgpa: 1.3
+}
+{
+  _id: 'Fail',
+  students: 1,
+  avg_cgpa: 0.85,
+  min_cgpa: 0.85,
+  max_cgpa: 0.85
+}
+
+---- Pipeline 3: top 5 students by CGPA ----
+{
+  matric_no: 'ICU/2023/00001',
+  student_name: 'Uwakmfonabasi Ntah',
+  programme_code: 'BSC-CSC',
+  cgpa: 4.62,
+  graduation_class: 'First Class',
+  total_credits: 120,
+  courses_counted: 3
+}
+{
+  matric_no: 'ICU/2023/00002',
+  student_name: 'Emem Edet',
+  programme_code: 'BSC-CSC',
+  cgpa: 3.85,
+  graduation_class: 'Second Class Upper',
+  total_credits: 120,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2024/00005',
+  student_name: 'Iniodu Udoh',
+  programme_code: 'BSC-ECN',
+  cgpa: 2.85,
+  graduation_class: 'Second Class Lower',
+  total_credits: 60,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2022/00006',
+  student_name: 'Affiong Eshiet',
+  programme_code: 'BSC-ACC',
+  cgpa: 1.3,
+  graduation_class: 'Pass',
+  total_credits: 90,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2023/00003',
+  student_name: 'Akpan Inyang',
+  programme_code: 'BENG-CEN',
+  cgpa: 0.85,
+  graduation_class: 'Fail',
+  total_credits: 45,
+  courses_counted: 2
+}
+
+---- 02_data_and_queries.js done ----
+=== P4 bulk data + index demo ===
+---- inserted 40000 documents into bulk_results ----
+---- collection count: 40000 ----
+dropIndex before-demo (no-op if absent): can't find index with key: { matric_no: 1, course_code: 1 }
+
+==== BEFORE compound index (hint {$natural:1}) ====
+BEFORE  stage=COLLSCAN  docsExamined=40000  nReturned=200  timeMs=12
+---- created compound index idx_matric_course ----
+
+==== AFTER compound index (planner chooses IXSCAN) ====
+AFTER   stage=FETCH -> IXSCAN  docsExamined=200  nReturned=200  timeMs=1
+
+==== Comparison ====
+                  BEFORE              AFTER
+Stage   : COLLSCAN             FETCH
+Docs    : 40000             200
+Time ms : 12             1
+
+---- done.  Documents in bulk_results: 40000 ----
+
+================ PORTFOLIO 5: portfolio-5-distributed-cloud/p5_output.log ================
+log lines: 161
+SET
+Pager usage is off.
+psql:01_partitioning.sql:21: NOTICE:  table "assessment_result_part" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+psql:01_partitioning.sql:92: NOTICE:  Creating monthly partitions from 2026-11-01 to 2026-12-01 (inclusive)
+psql:01_partitioning.sql:92: NOTICE:    created partition ar_part_2026_11 for [2026-11-01,2026-12-01]
+psql:01_partitioning.sql:92: NOTICE:    created partition ar_part_2026_12 for [2026-12-01,2027-01-01]
+psql:01_partitioning.sql:92: NOTICE:    created DEFAULT partition ar_part_default
+DO
+INSERT 0 60004
+INSERT 0 300
+==== Rows per partition ====
+psql:01_partitioning.sql:164: NOTICE:  partition ar_part_2026_11: 60054 rows
+psql:01_partitioning.sql:164: NOTICE:  partition ar_part_2026_12: 0 rows
+psql:01_partitioning.sql:164: NOTICE:  partition ar_part_default: 250 rows
+DO
+ partition_name  | approx_rows_returned_by_stats 
+-----------------+-------------------------------
+ ar_part_2026_11 |                             0
+ ar_part_2026_12 |                             0
+ ar_part_default |                             0
+(3 rows)
+
+==== Pruned EXPLAIN ANALYZE: one month only ====
+                                                                                                          QUERY PLAN                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Append  (cost=1247.34..1690.97 rows=162 width=86) (actual time=3.111..17.132 rows=60054 loops=1)
+   Buffers: shared hit=1132
+   Subplans Removed: 2
+   ->  Bitmap Heap Scan on ar_part_2026_11 assessment_result_part_1  (cost=1247.34..1660.07 rows=158 width=86) (actual time=3.110..12.684 rows=60054 loops=1)
+         Recheck Cond: ((created_at >= date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone)) AND (created_at < (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval)))
+         Heap Blocks: exact=900
+         Buffers: shared hit=1132
+         ->  Bitmap Index Scan on ar_part_2026_11_pkey  (cost=0.00..1247.30 rows=158 width=0) (actual time=2.984..2.984 rows=60054 loops=1)
+               Index Cond: ((created_at >= date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone)) AND (created_at < (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval)))
+               Buffers: shared hit=232
+ Planning:
+   Buffers: shared hit=16
+ Planning Time: 0.400 ms
+ Execution Time: 19.533 ms
+(14 rows)
+
+==== EXPLAIN ANALYZE: all data (no pruning) ====
+                                                                       QUERY PLAN                                                                        
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=1483.50..1483.51 rows=1 width=8) (actual time=12.078..12.080 rows=1 loops=1)
+   Buffers: shared hit=904
+   ->  Append  (cost=0.00..1403.00 rows=32200 width=0) (actual time=0.007..9.124 rows=60304 loops=1)
+         Buffers: shared hit=904
+         ->  Seq Scan on ar_part_2026_11 assessment_result_part_1  (cost=0.00..1215.00 rows=31500 width=0) (actual time=0.006..4.966 rows=60054 loops=1)
+               Buffers: shared hit=900
+         ->  Seq Scan on ar_part_2026_12 assessment_result_part_2  (cost=0.00..13.50 rows=350 width=0) (actual time=0.004..0.004 rows=0 loops=1)
+         ->  Seq Scan on ar_part_default assessment_result_part_3  (cost=0.00..13.50 rows=350 width=0) (actual time=0.004..0.021 rows=250 loops=1)
+               Buffers: shared hit=4
+ Planning:
+   Buffers: shared hit=1
+ Planning Time: 0.091 ms
+ Execution Time: 12.097 ms
+(13 rows)
+
+==== End of partitioning demo ====
+=== P5 streaming replica ===
+===================================================================
+ Portfolio 5 — primary + streaming read replica
+   Primary : port 5432  (/var/lib/postgresql/16/main)
+   Replica : port 5433  (/var/lib/postgresql/16/replica)
+===================================================================
+[repl] configuring primary postgresql.conf for replication
+[repl] prepending replication trust lines to top of pg_hba.conf
+[repl] restarting primary to apply wal_level + pg_hba changes
+[repl] creating replication role 'repl' and slot 'replica1'
+DO
+ pg_create_physical_replication_slot 
+-------------------------------------
+ (replica1,)
+(1 row)
+
+[repl] running pg_basebackup (this can take ~30 s for the resultsys DB)
+waiting for checkpoint
+65019/65019 kB (100%), 0/1 tablespace
+65019/65019 kB (100%), 1/1 tablespace
+[repl] writing the replica's own postgresql.conf overrides
+[repl] starting replica on port 5433
+waiting for server to start.... done
+server started
+
+=== Verification ===
+[repl] primary (5432) — SELECT pg_is_in_recovery();
+ primary_is_in_recovery 
+------------------------
+ f
+(1 row)
+
+
+[repl] replica (5433) — SELECT pg_is_in_recovery();
+ replica_is_in_recovery 
+------------------------
+ t
+(1 row)
+
+
+[repl] primary — replication status:
+ application_name |   state   | sync_state | sent_lsn  | write_lsn | flush_lsn | replay_lsn 
+------------------+-----------+------------+-----------+-----------+-----------+------------
+ walreceiver      | streaming | async      | 0/8000000 | 0/8000000 | 0/8000000 | 0/8000000
+(1 row)
+
+
+[repl] DONE.
+[repl] Replication is now streaming: writes on the primary (port 5432)
+[repl] are replayed onto the replica (port 5433) within milliseconds.
+
+[repl] To connect to the replica for read-only queries:
+    sudo runuser -u postgres -- psql -p 5433 -d resultsys
+=== Replica tests ===
+You are now connected to database "resultsys" as user "postgres" via socket in "/var/run/postgresql" at port "5433".
+ server  | port | in_recovery 
+---------+------+-------------
+ REPLICA | 5433 | t
+(  ...
+0 rows=31500 width=0) (actual time=0.006..4.966 rows=60054 loops=1)
+               Buffers: shared hit=900
+         ->  Seq Scan on ar_part_2026_12 assessment_result_part_2  (cost=0.00..13.50 rows=350 width=0) (actual time=0.004..0.004 rows=0 loops=1)
+         ->  Seq Scan on ar_part_default assessment_result_part_3  (cost=0.00..13.50 rows=350 width=0) (actual time=0.004..0.021 rows=250 loops=1)
+               Buffers: shared hit=4
+ Planning:
+   Buffers: shared hit=1
+ Planning Time: 0.091 ms
+ Execution Time: 12.097 ms
+(13 rows)
+
+==== End of partitioning demo ====
+=== P5 streaming replica ===
+===================================================================
+ Portfolio 5 — primary + streaming read replica
+   Primary : port 5432  (/var/lib/postgresql/16/main)
+   Replica : port 5433  (/var/lib/postgresql/16/replica)
+===================================================================
+[repl] configuring primary postgresql.conf for replication
+[repl] prepending replication trust lines to top of pg_hba.conf
+[repl] restarting primary to apply wal_level + pg_hba changes
+[repl] creating replication role 'repl' and slot 'replica1'
+DO
+ pg_create_physical_replication_slot 
+-------------------------------------
+ (replica1,)
+(1 row)
+
+[repl] running pg_basebackup (this can take ~30 s for the resultsys DB)
+waiting for checkpoint
+65019/65019 kB (100%), 0/1 tablespace
+65019/65019 kB (100%), 1/1 tablespace
+[repl] writing the replica's own postgresql.conf overrides
+[repl] starting replica on port 5433
+waiting for server to start.... done
+server started
+
+=== Verification ===
+[repl] primary (5432) — SELECT pg_is_in_recovery();
+ primary_is_in_recovery 
+------------------------
+ f
+(1 row)
+
+
+[repl] replica (5433) — SELECT pg_is_in_recovery();
+ replica_is_in_recovery 
+------------------------
+ t
+(1 row)
+
+
+[repl] primary — replication status:
+ application_name |   state   | sync_state | sent_lsn  | write_lsn | flush_lsn | replay_lsn 
+------------------+-----------+------------+-----------+-----------+-----------+------------
+ walreceiver      | streaming | async      | 0/8000000 | 0/8000000 | 0/8000000 | 0/8000000
+(1 row)
+
+
+[repl] DONE.
+[repl] Replication is now streaming: writes on the primary (port 5432)
+[repl] are replayed onto the replica (port 5433) within milliseconds.
+
+[repl] To connect to the replica for read-only queries:
+    sudo runuser -u postgres -- psql -p 5433 -d resultsys
+=== Replica tests ===
+You are now connected to database "resultsys" as user "postgres" via socket in "/var/run/postgresql" at port "5433".
+ server  | port | in_recovery 
+---------+------+-------------
+ REPLICA | 5433 | t
+(1 row)
+
+--- T1. Attempt an INSERT on the REPLICA (port 5433). Must be rejected ---
+psql:03_replica_tests.sql:7: ERROR:  cannot execute INSERT in a read-only transaction
+You are now connected to database "resultsys" as user "postgres" via socket in "/var/run/postgresql" at port "5432".
+ server  | port | in_recovery 
+---------+------+-------------
+ PRIMARY | 5432 | f
+(1 row)
+
+--- T2. Insert a marker row on the PRIMARY (5432), then read it on the REPLICA (5433) ---
+INSERT 0 1
+ pg_sleep 
+----------
+ 
+(1 row)
+
+ application_name |   state   | sync_state | sent_lsn  | replay_lsn | bytes_behind 
+------------------+-----------+------------+-----------+------------+--------------
+ walreceiver      | streaming | async      | 0/80004A0 | 0/80004A0  |            0
+(1 row)
+
+You are now connected to database "resultsys" as user "postgres" via socket in "/var/run/postgresql" at port "5433".
+       name       | faculty_code 
+------------------+--------------
+ P5-REPLICA-PROOF | RP0001
+(1 row)
+
+You are now connected to database "resultsys" as user "postgres" via socket in "/var/run/postgresql" at port "5432".
+DELETE 1
+ pg_sleep 
+----------
+ 
+(1 row)
+
+You are now connected to database "resultsys" as user "postgres" via socket in "/var/run/postgresql" at port "5433".
+ marker_rows_left_on_replica 
+-----------------------------
+                           0
+(1 row)
+
+
+===== GitHub =====
+https://github.com/ntahuwakmfon-hue/ntah_uwakmfonabasi_301923611
+a1a24d9 Portfolio 5: scripts and real output
+dd256ed Portfolio 4: scripts and real output
+9e3ee6e Portfolio 3: scripts and real output
+1401f70 Portfolio 2: scripts and real output
+3e249e1 Portfolio 1: scripts and real output
+246cfcd Setup: project, setup.sh, runall.sh
+7b8ecd5 Initial commit
