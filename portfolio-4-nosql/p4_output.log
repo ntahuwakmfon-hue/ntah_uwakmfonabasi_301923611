@@ -1,0 +1,141 @@
+---- collections in resultsys after setup ----
+  result_audit_log
+  transcript_documents
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+Warning: NumberLong: specifying a number as argument is deprecated and may lead to loss of precision, pass a string instead
+---- result_audit_log seed count: 5 ----
+---- transcript_documents seed count: 5 ----
+
+---- Pipeline 1: events per event_type ----
+{
+  _id: 'BATCH_PUBLISHED',
+  count: 2,
+  distinct_actors: [
+    'Senate Secretary'
+  ]
+}
+{
+  _id: 'GRADE_CHANGE',
+  count: 2,
+  distinct_actors: [
+    'Dr. Mary Udoudo',
+    'Dr. Uwakmfon Nkanta'
+  ]
+}
+{
+  _id: 'RESULT_APPROVED',
+  count: 1,
+  distinct_actors: [
+    'Exam Officer, CSC'
+  ]
+}
+
+---- Pipeline 2: average CGPA per graduation_class ----
+{
+  _id: 'First Class',
+  students: 1,
+  avg_cgpa: 4.62,
+  min_cgpa: 4.62,
+  max_cgpa: 4.62
+}
+{
+  _id: 'Second Class Upper',
+  students: 1,
+  avg_cgpa: 3.85,
+  min_cgpa: 3.85,
+  max_cgpa: 3.85
+}
+{
+  _id: 'Second Class Lower',
+  students: 1,
+  avg_cgpa: 2.85,
+  min_cgpa: 2.85,
+  max_cgpa: 2.85
+}
+{
+  _id: 'Pass',
+  students: 1,
+  avg_cgpa: 1.3,
+  min_cgpa: 1.3,
+  max_cgpa: 1.3
+}
+{
+  _id: 'Fail',
+  students: 1,
+  avg_cgpa: 0.85,
+  min_cgpa: 0.85,
+  max_cgpa: 0.85
+}
+
+---- Pipeline 3: top 5 students by CGPA ----
+{
+  matric_no: 'ICU/2023/00001',
+  student_name: 'Uwakmfonabasi Ntah',
+  programme_code: 'BSC-CSC',
+  cgpa: 4.62,
+  graduation_class: 'First Class',
+  total_credits: 120,
+  courses_counted: 3
+}
+{
+  matric_no: 'ICU/2023/00002',
+  student_name: 'Emem Edet',
+  programme_code: 'BSC-CSC',
+  cgpa: 3.85,
+  graduation_class: 'Second Class Upper',
+  total_credits: 120,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2024/00005',
+  student_name: 'Iniodu Udoh',
+  programme_code: 'BSC-ECN',
+  cgpa: 2.85,
+  graduation_class: 'Second Class Lower',
+  total_credits: 60,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2022/00006',
+  student_name: 'Affiong Eshiet',
+  programme_code: 'BSC-ACC',
+  cgpa: 1.3,
+  graduation_class: 'Pass',
+  total_credits: 90,
+  courses_counted: 2
+}
+{
+  matric_no: 'ICU/2023/00003',
+  student_name: 'Akpan Inyang',
+  programme_code: 'BENG-CEN',
+  cgpa: 0.85,
+  graduation_class: 'Fail',
+  total_credits: 45,
+  courses_counted: 2
+}
+
+---- 02_data_and_queries.js done ----
+=== P4 bulk data + index demo ===
+---- inserted 40000 documents into bulk_results ----
+---- collection count: 40000 ----
+dropIndex before-demo (no-op if absent): can't find index with key: { matric_no: 1, course_code: 1 }
+
+==== BEFORE compound index (hint {$natural:1}) ====
+BEFORE  stage=COLLSCAN  docsExamined=40000  nReturned=200  timeMs=12
+---- created compound index idx_matric_course ----
+
+==== AFTER compound index (planner chooses IXSCAN) ====
+AFTER   stage=FETCH -> IXSCAN  docsExamined=200  nReturned=200  timeMs=1
+
+==== Comparison ====
+                  BEFORE              AFTER
+Stage   : COLLSCAN             FETCH
+Docs    : 40000             200
+Time ms : 12             1
+
+---- done.  Documents in bulk_results: 40000 ----
