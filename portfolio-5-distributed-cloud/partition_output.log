@@ -1,0 +1,62 @@
+SET
+Pager usage is off.
+psql:01_partitioning.sql:21: NOTICE:  table "assessment_result_part" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+psql:01_partitioning.sql:92: NOTICE:  Creating monthly partitions from 2026-11-01 to 2026-12-01 (inclusive)
+psql:01_partitioning.sql:92: NOTICE:    created partition ar_part_2026_11 for [2026-11-01,2026-12-01]
+psql:01_partitioning.sql:92: NOTICE:    created partition ar_part_2026_12 for [2026-12-01,2027-01-01]
+psql:01_partitioning.sql:92: NOTICE:    created DEFAULT partition ar_part_default
+DO
+INSERT 0 60004
+INSERT 0 300
+==== Rows per partition ====
+psql:01_partitioning.sql:164: NOTICE:  partition ar_part_2026_11: 60054 rows
+psql:01_partitioning.sql:164: NOTICE:  partition ar_part_2026_12: 0 rows
+psql:01_partitioning.sql:164: NOTICE:  partition ar_part_default: 250 rows
+DO
+ partition_name  | approx_rows_returned_by_stats 
+-----------------+-------------------------------
+ ar_part_2026_11 |                             0
+ ar_part_2026_12 |                             0
+ ar_part_default |                             0
+(3 rows)
+
+==== Pruned EXPLAIN ANALYZE: one month only ====
+                                                                                                          QUERY PLAN                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Append  (cost=1247.34..1690.97 rows=162 width=86) (actual time=3.111..17.132 rows=60054 loops=1)
+   Buffers: shared hit=1132
+   Subplans Removed: 2
+   ->  Bitmap Heap Scan on ar_part_2026_11 assessment_result_part_1  (cost=1247.34..1660.07 rows=158 width=86) (actual time=3.110..12.684 rows=60054 loops=1)
+         Recheck Cond: ((created_at >= date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone)) AND (created_at < (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval)))
+         Heap Blocks: exact=900
+         Buffers: shared hit=1132
+         ->  Bitmap Index Scan on ar_part_2026_11_pkey  (cost=0.00..1247.30 rows=158 width=0) (actual time=2.984..2.984 rows=60054 loops=1)
+               Index Cond: ((created_at >= date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone)) AND (created_at < (date_trunc('month'::text, (CURRENT_DATE)::timestamp with time zone) + '1 mon'::interval)))
+               Buffers: shared hit=232
+ Planning:
+   Buffers: shared hit=16
+ Planning Time: 0.400 ms
+ Execution Time: 19.533 ms
+(14 rows)
+
+==== EXPLAIN ANALYZE: all data (no pruning) ====
+                                                                       QUERY PLAN                                                                        
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=1483.50..1483.51 rows=1 width=8) (actual time=12.078..12.080 rows=1 loops=1)
+   Buffers: shared hit=904
+   ->  Append  (cost=0.00..1403.00 rows=32200 width=0) (actual time=0.007..9.124 rows=60304 loops=1)
+         Buffers: shared hit=904
+         ->  Seq Scan on ar_part_2026_11 assessment_result_part_1  (cost=0.00..1215.00 rows=31500 width=0) (actual time=0.006..4.966 rows=60054 loops=1)
+               Buffers: shared hit=900
+         ->  Seq Scan on ar_part_2026_12 assessment_result_part_2  (cost=0.00..13.50 rows=350 width=0) (actual time=0.004..0.004 rows=0 loops=1)
+         ->  Seq Scan on ar_part_default assessment_result_part_3  (cost=0.00..13.50 rows=350 width=0) (actual time=0.004..0.021 rows=250 loops=1)
+               Buffers: shared hit=4
+ Planning:
+   Buffers: shared hit=1
+ Planning Time: 0.091 ms
+ Execution Time: 12.097 ms
+(13 rows)
+
+==== End of partitioning demo ====
