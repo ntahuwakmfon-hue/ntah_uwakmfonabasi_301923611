@@ -1,0 +1,58 @@
+race_demos.py -- concurrency demos for Ibom Crown result processing
+database: resultsys   (Unix socket, no password, no TCP)
+
+========================================================================
+PART 1 -- the BUG: write skew under REPEATABLE READ
+========================================================================
+  A: committed  (saw 1 pending, approved 1)
+  B: committed  (inserted a new PENDING row)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 1
+  >>> BUG REPRODUCED: a PUBLISHED batch contains an unapproved result.
+
+========================================================================
+PART 2 -- trigger constraint fix WHERE ONE APPLIES (A publishes and commits FIRST, then B tries to insert)
+========================================================================
+  A: published + committed
+  B: blocked by trigger (SQLSTATE P0001)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> When A commits BEFORE B acts, the INSERT-time trigger closes the hole.
+
+========================================================================
+PART 3 -- the FIX: SERIALIZABLE + retry on SQLSTATE 40001
+========================================================================
+  A final: committed on attempt 1 (approved 2 pending result(s) in retry)
+  B: committed (inserted PENDING)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> FIX CONFIRMED: no unapproved result in the PUBLISHED batch.
+
+========================================================================
+PART 4 -- COMPARISON ONLY: SELECT ... FOR UPDATE on result_batch
+========================================================================
+  A: committed (published after holding lock)  (locked status: APPROVED)
+  B: failed: 40001
+  >>> FOR UPDATE serialises the two officers: B blocks until A is done.
+      This is heavier than SERIALIZABLE+retry; kept here for comparison only.
+
+========================================================================
+PART 5 -- READ COMMITTED vs REPEATABLE READ
+========================================================================
+  READ COMMITTED : before=0, after=1  (saw the new row)
+  REPEATABLE READ: before=0, after=0  (snapshot frozen -- did NOT see the new row)
+  >>> RC re-reads per statement; RR uses the snapshot frozen at BEGIN.
+      The write-skew bug exists because RR's trigger SELECT cannot see a
+      concurrently inserted row, so it under-counts PENDING results.
+
+========================================================================
+PART 6 -- deadlock (40P01) + the fixed-id-order version
+========================================================================
+  DEADLOCK version  A: failed: SQLSTATE 40P01 (ERROR:  deadlock detected
+DETAIL:  Process 17066 waits for ShareLock on transaction 847; blocked by )
+  DEADLOCK version  B: committed (no deadlock)
+  FIXED ORDER  A (r1 then r2): committed
+  FIXED ORDER  B (r1 then r2): committed
+  >>> Updating shared rows in a consistent id order removes the deadlock.
+
+cleanup: demo students, batches and results removed.

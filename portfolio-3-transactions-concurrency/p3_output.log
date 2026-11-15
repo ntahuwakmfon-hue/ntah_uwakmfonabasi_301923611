@@ -1,0 +1,125 @@
+SET
+Pager usage is off.
+DO
+Demo batch id: 100
+ set_config 
+------------
+ 100
+(1 row)
+
+==== DEMO 1: COMMITTED result-posting transaction ====
+BEGIN
+INSERT 0 2
+   matric_no    | ca_score | exam_score | total_score | grade | grade_point |  status  
+----------------+----------+------------+-------------+-------+-------------+----------
+ ICU/2024/00100 |    32.00 |      58.00 |       90.00 | A     |         5.0 | APPROVED
+ ICU/2024/00101 |    28.00 |      41.00 |       69.00 | B     |         4.0 | APPROVED
+(2 rows)
+
+COMMIT
+>> DEMO 1 committed. Verify the rows are persisted:
+   matric_no    | ca_score | exam_score | total_score | grade | grade_point |  status  
+----------------+----------+------------+-------------+-------+-------------+----------
+ ICU/2024/00100 |    32.00 |      58.00 |       90.00 | A     |         5.0 | APPROVED
+ ICU/2024/00101 |    28.00 |      41.00 |       69.00 | B     |         4.0 | APPROVED
+(2 rows)
+
+==== DEMO 2: ROLLED-BACK result-posting transaction ====
+BEGIN
+INSERT 0 1
+>> Row for ICU/2024/00102 inserted inside the transaction (not committed yet).
+ rows_visible_inside_tx 
+------------------------
+                      1
+(1 row)
+
+psql:01_transactions.sql:133: NOTICE:  CHECK violation caught: new row for relation "assessment_result" violates check constraint "assessment_result_ca_score_check"
+psql:01_transactions.sql:133: ERROR:  intentional abort for demo 2
+CONTEXT:  PL/pgSQL function inline_code_block line 15 at RAISE
+ROLLBACK
+>> DEMO 2 rolled back. Verify NEITHER row was persisted:
+ rows_for_00102_or_00103 
+-------------------------
+                       0
+(1 row)
+
+==== DEMO 3: SAVEPOINT recovery (one bad row skipped) ====
+BEGIN
+SAVEPOINT
+psql:01_transactions.sql:167: NOTICE:  Skipping bad row ICU/2024/00104: new row for relation "assessment_result" violates check constraint "assessment_result_ca_score_check"
+DO
+RELEASE
+SAVEPOINT
+INSERT 0 1
+RELEASE
+SAVEPOINT
+INSERT 0 1
+RELEASE
+COMMIT
+>> DEMO 3 committed. Verify: 3 good rows persisted, 1 bad row skipped.
+   matric_no    | ca_score | exam_score | total_score | grade |  status  
+----------------+----------+------------+-------------+-------+----------
+ ICU/2024/00105 |    30.00 |      50.00 |       80.00 | A     | APPROVED
+ ICU/2024/00106 |    22.00 |      18.00 |       40.00 | E     | APPROVED
+(2 rows)
+
+==== End of transaction demos ====
+=== P3 two-session concurrency demos ===
+race_demos.py -- concurrency demos for Ibom Crown result processing
+database: resultsys   (Unix socket, no password, no TCP)
+
+========================================================================
+PART 1 -- the BUG: write skew under REPEATABLE READ
+========================================================================
+  A: committed  (saw 1 pending, approved 1)
+  B: committed  (inserted a new PENDING row)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 1
+  >>> BUG REPRODUCED: a PUBLISHED batch contains an unapproved result.
+
+========================================================================
+PART 2 -- trigger constraint fix WHERE ONE APPLIES (A publishes and commits FIRST, then B tries to insert)
+========================================================================
+  A: published + committed
+  B: blocked by trigger (SQLSTATE P0001)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> When A commits BEFORE B acts, the INSERT-time trigger closes the hole.
+
+========================================================================
+PART 3 -- the FIX: SERIALIZABLE + retry on SQLSTATE 40001
+========================================================================
+  A final: committed on attempt 1 (approved 2 pending result(s) in retry)
+  B: committed (inserted PENDING)
+  Final batch status : PUBLISHED
+  PENDING rows in that batch: 0
+  >>> FIX CONFIRMED: no unapproved result in the PUBLISHED batch.
+
+========================================================================
+PART 4 -- COMPARISON ONLY: SELECT ... FOR UPDATE on result_batch
+========================================================================
+  A: committed (published after holding lock)  (locked status: APPROVED)
+  B: failed: 40001
+  >>> FOR UPDATE serialises the two officers: B blocks until A is done.
+      This is heavier than SERIALIZABLE+retry; kept here for comparison only.
+
+========================================================================
+PART 5 -- READ COMMITTED vs REPEATABLE READ
+========================================================================
+  READ COMMITTED : before=0, after=1  (saw the new row)
+  REPEATABLE READ: before=0, after=0  (snapshot frozen -- did NOT see the new row)
+  >>> RC re-reads per statement; RR uses the snapshot frozen at BEGIN.
+      The write-skew bug exists because RR's trigger SELECT cannot see a
+      concurrently inserted row, so it under-counts PENDING results.
+
+========================================================================
+PART 6 -- deadlock (40P01) + the fixed-id-order version
+========================================================================
+  DEADLOCK version  A: failed: SQLSTATE 40P01 (ERROR:  deadlock detected
+DETAIL:  Process 17066 waits for ShareLock on transaction 847; blocked by )
+  DEADLOCK version  B: committed (no deadlock)
+  FIXED ORDER  A (r1 then r2): committed
+  FIXED ORDER  B (r1 then r2): committed
+  >>> Updating shared rows in a consistent id order removes the deadlock.
+
+cleanup: demo students, batches and results removed.
